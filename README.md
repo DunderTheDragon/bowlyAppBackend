@@ -4,7 +4,8 @@ Self-hosted backend for **Bowly** — an open-source calorie tracker with **virt
 
 Built with **Kotlin**, **Spring Boot 4**, **PostgreSQL**, and **Flyway** migrations.
 
-> **Note:** The mobile/desktop client (Kotlin Multiplatform) lives in a **separate repository**.  
+> **Note:** The mobile/desktop client (Kotlin Multiplatform) lives in a **[separate repository](https://github.com/DunderTheDragon/bowlyApp)**.  
+> **[Download the Android APK](https://github.com/DunderTheDragon/bowlyApp/releases/latest/download/composeApp-debug.apk)** from GitHub Releases.  
 > The `bowly/` directory may exist locally for development convenience but is **gitignored** here and must not be committed to this repo.
 
 ---
