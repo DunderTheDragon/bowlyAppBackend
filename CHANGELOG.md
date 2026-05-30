@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Initial open-source release of the Bowly backend API
-- JWT auth, multi-user households, admin setup flow
+- JWT auth, multi-user households, registration secret gate
 - Calorie diary with meal types and daily macro summaries
 - Virtual batch meals (*patelnie*) with multi-segment support and portion locking
 - Product search: local cache and Open Food Facts

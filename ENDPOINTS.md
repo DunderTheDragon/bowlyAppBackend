@@ -14,10 +14,9 @@ Base URL: `http://<host>:8080`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/system/status` | Health + whether initial setup is done |
-| POST | `/api/system/setup` | Create first admin (empty DB only) |
+| GET | `/api/system/status` | Health + whether any user has registered yet |
 | POST | `/api/auth/login` | Login → JWT |
-| POST | `/api/auth/register` | Register user (requires `registrationSecret`) |
+| POST | `/api/auth/register` | Register user (requires `registrationSecret` from `.env`) |
 
 ### Login
 

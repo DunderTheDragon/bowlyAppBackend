@@ -11,7 +11,7 @@ Built with **Kotlin**, **Spring Boot 4**, **PostgreSQL**, and **Flyway** migrati
 
 ## Features
 
-- JWT authentication, multi-user households, admin panel
+- JWT authentication, multi-user households, registration secret for self-hosted instances
 - Calorie diary with meal types and daily macro summaries
 - **Virtual batch meals** — multi-segment pots with pessimistic locking on portion consume
 - Product search: local cache → Open Food Facts (incl. Polish products)
@@ -41,7 +41,7 @@ Edit `.env` and set at minimum:
 | Variable | Description |
 |----------|-------------|
 | `JWT_SECRET` | Random string, **at least 32 characters** (HS256) |
-| `REGISTRATION_SECRET` | Shared secret required when registering new users |
+| `REGISTRATION_SECRET` | Instance password required to register — prevents bots on publicly exposed backends |
 | `POSTGRES_PASSWORD` | Database password (change from default for production) |
 
 ### 2. Start the stack
@@ -71,30 +71,29 @@ Wait for: `Started BowlyAppApplicationKt`
 curl http://localhost:8080/api/system/status
 ```
 
-### 4. Initial admin setup
+### 4. Create your account
 
-On a **fresh database**, call setup once (no auth required):
+Register the first user (and any household members) with the instance password from `.env`:
 
 ```bash
-curl -X POST http://localhost:8080/api/system/setup \
+curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "adminUsername": "admin",
-    "adminPassword": "your-secure-password"
+    "username": "jan",
+    "password": "your-secure-password",
+    "registrationSecret": "value-from-REGISTRATION_SECRET-in-env"
   }'
 ```
 
-Then log in:
+The response includes a JWT. You can also log in later:
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "your-secure-password"}'
+  -d '{"username": "jan", "password": "your-secure-password"}'
 ```
 
 Use the returned `token` as `Authorization: Bearer <token>` for all other endpoints.
-
-Register additional household members via `POST /api/auth/register` (requires `registrationSecret` from `.env`).
 
 ---
 
@@ -107,7 +106,7 @@ Register additional household members via `POST /api/auth/register` (requires `r
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | DB password |
 | `JWT_SECRET` | *(required)* | JWT signing key |
 | `JWT_EXPIRATION_MS` | `86400000` | Token lifetime (ms) |
-| `REGISTRATION_SECRET` | *(required)* | Gate for new user registration |
+| `REGISTRATION_SECRET` | *(required)* | Instance password required to register new users |
 
 Example Spring config: [`src/main/resources/application.properties.example`](src/main/resources/application.properties.example)
 
@@ -134,9 +133,8 @@ See **[ENDPOINTS.md](ENDPOINTS.md)** for the full REST API reference.
 Public endpoints (no JWT):
 
 - `GET /api/system/status`
-- `POST /api/system/setup` *(once, empty database)*
 - `POST /api/auth/login`
-- `POST /api/auth/register` *(with registration secret)*
+- `POST /api/auth/register` *(requires `registrationSecret` from `.env`)*
 
 All other `/api/**` routes require `Authorization: Bearer <JWT>`.
 
