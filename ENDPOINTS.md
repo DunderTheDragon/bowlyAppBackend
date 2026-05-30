@@ -6,7 +6,7 @@ All endpoints except those listed under **Public** require:
 Authorization: Bearer <JWT>
 ```
 
-Base URL: `http://<host>:8080`
+Base URL: `http://<host>:8742` (override with `SERVER_PORT` in `.env`)
 
 ---
 

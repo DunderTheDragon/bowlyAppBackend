@@ -31,7 +31,7 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/*SNAPSHOT.jar app.jar
 
 # Udostępnianie portu dla aplikacji Spring Boot
-EXPOSE 8080
+EXPOSE 8742
 
 # Komenda uruchamiajaca aplikacje
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -54,7 +54,7 @@ This starts:
 
 | Service | URL / port |
 |---------|------------|
-| API | `http://localhost:8080` |
+| API | `http://localhost:8742` |
 | PostgreSQL | `localhost:5433` (host) → `5432` (container) |
 
 Database data is stored in the Docker volume `postgres_data`.
@@ -68,7 +68,7 @@ docker compose logs -f backend
 Wait for: `Started BowlyAppApplicationKt`
 
 ```bash
-curl http://localhost:8080/api/system/status
+curl http://localhost:8742/api/system/status
 ```
 
 ### 4. Create your account
@@ -76,7 +76,7 @@ curl http://localhost:8080/api/system/status
 Register the first user (and any household members) with the instance password from `.env`:
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST http://localhost:8742/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "jan",
@@ -88,7 +88,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 The response includes a JWT. You can also log in later:
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8742/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "jan", "password": "your-secure-password"}'
 ```
@@ -106,6 +106,7 @@ Use the returned `token` as `Authorization: Bearer <token>` for all other endpoi
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | DB password |
 | `JWT_SECRET` | *(required)* | JWT signing key |
 | `JWT_EXPIRATION_MS` | `86400000` | Token lifetime (ms) |
+| `SERVER_PORT` | `8742` | HTTP port (non-default to reduce clashes with other local services) |
 | `REGISTRATION_SECRET` | *(required)* | Instance password required to register new users |
 
 Example Spring config: [`src/main/resources/application.properties.example`](src/main/resources/application.properties.example)
@@ -183,9 +184,9 @@ Only on databases that ran older migration files. On a dev instance: `docker com
 
 **Client cannot reach API**
 
-- Emulator Android: `http://10.0.2.2:8080`
-- Physical device: `http://<your-LAN-IP>:8080`
-- Ensure port 8080 is not blocked by firewall
+- Emulator Android: `http://10.0.2.2:8742`
+- Physical device: `http://<your-LAN-IP>:8742`
+- Ensure port `8742` (or your custom `SERVER_PORT`) is not blocked by firewall
 
 ---
 

@@ -23,3 +23,6 @@ spring.flyway.validate-on-migrate=true
 app.jwt.secret=${JWT_SECRET}
 app.jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}
 app.registration.secret=${REGISTRATION_SECRET}
+
+# HTTP — nadpisz przez SERVER_PORT (domyślnie 8742)
+server.port=${SERVER_PORT:8742}
