@@ -1,0 +1,32 @@
+# Gradle / Kotlin
+.gradle/
+build/
+.kotlin/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.swp
+*.swo
+
+# Lokalna konfiguracja (sekrety)
+.env
+.env.local
+application-local.properties
+*.local.properties
+*.log
+
+# Frontend KMP — osobne repozytorium (trzymany lokalnie tylko dla kontekstu agentów AI)
+bowly/
+frontend/
+
+# Legacy
+HELP.md
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/

@@ -1,0 +1,13 @@
+.git
+.gitignore
+.idea
+.vscode
+*.md
+.env
+.env.*
+bowly/
+frontend/
+build/
+.gradle/
+.kotlin/
+**/build/

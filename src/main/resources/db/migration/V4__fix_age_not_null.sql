@@ -1,0 +1,2 @@
+-- (Plik celowo zostawiony pusty, aby Flyway nie zglaszal bledu checksumy, a kolumny i tak w V3 dodano poprawione)
+--

@@ -1,0 +1,25 @@
+# Przykładowa konfiguracja lokalna (bez Dockera).
+# Skopiuj do application-local.properties lub ustaw zmienne środowiskowe.
+#
+# Uruchomienie z własnym profilem:
+#   SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
+
+spring.application.name=bowlyApp
+
+spring.datasource.url=jdbc:postgresql://localhost:5433/bowly_db
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.validate-on-migrate=true
+
+app.jwt.secret=${JWT_SECRET}
+app.jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}
+app.registration.secret=${REGISTRATION_SECRET}
