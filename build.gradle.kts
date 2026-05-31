@@ -29,9 +29,9 @@ dependencies {
 	// WebClient do API zewnętrznych (część WebFlux, ale używamy samego klienta)
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
-	// Baza danych i migracje
+	// Baza danych i migracje (Spring Boot 4 wymaga startera — samo flyway-core nie uruchamia migracji)
+	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	runtimeOnly("org.postgresql:postgresql")
-	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 
 	// JWT

@@ -179,6 +179,27 @@ docker compose down -v
 
 Ensure `.env` defines `JWT_SECRET` (≥ 32 chars) and `REGISTRATION_SECRET`.
 
+**Backend exits — `password authentication failed for user "postgres"`**
+
+PostgreSQL stores its password only when the data volume is **first created**. If you change `POSTGRES_PASSWORD` in `.env` later, the old password remains until you reset the volume:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+The backend reads **`POSTGRES_PASSWORD`** for the database connection (same value as the `db` service). You do not need a separate `SPRING_DATASOURCE_PASSWORD`. Wrap passwords with special characters in quotes, e.g. `POSTGRES_PASSWORD="MyPass123!"`.
+
+**Backend exits — `missing table [...]` and empty database (`flyway_schema_history` does not exist)**
+
+Spring Boot 4 requires `spring-boot-starter-flyway` (not `flyway-core` alone). Without the starter, Flyway never runs and Hibernate validation fails on an empty database. Ensure you use a current `build.gradle.kts`, then:
+
+```bash
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
+```
+
 **Flyway migration checksum error**
 
 Only on databases that ran older migration files. On a dev instance: `docker compose down -v` and start fresh. Production: use `flyway repair` or restore from backup.

@@ -6,9 +6,9 @@
 
 spring.application.name=bowlyApp
 
-spring.datasource.url=jdbc:postgresql://localhost:5433/bowly_db
-spring.datasource.username=postgres
-spring.datasource.password=postgres
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/bowly_db}
+spring.datasource.username=${POSTGRES_USER:${SPRING_DATASOURCE_USERNAME:postgres}}
+spring.datasource.password=${POSTGRES_PASSWORD:${SPRING_DATASOURCE_PASSWORD:postgres}}
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
