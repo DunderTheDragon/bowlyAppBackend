@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - User recipes with sections; batch creation from recipes
 - Workout activities increasing daily calorie budget
 - User profile with TDEE-based targets and precise macro ratios
-- Docker Compose stack with PostgreSQL and Flyway migrations (V1–V8)
+- Docker Compose stack with PostgreSQL and Flyway migrations (V1–V9)
 
 ### Removed
 

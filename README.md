@@ -152,7 +152,7 @@ All other `/api/**` routes require `Authorization: Bearer <JWT>`.
 │   ├── repository/     Spring Data
 │   ├── dto/            Request/response models
 │   └── security/       JWT filter & config
-├── src/main/resources/db/migration/   Flyway SQL (V1–V8)
+├── src/main/resources/db/migration/   Flyway SQL (V1–V9)
 ├── compose.yaml        Production-like local stack
 ├── Dockerfile          Multi-stage JAR build
 ├── .env.example        Copy to .env before first run
