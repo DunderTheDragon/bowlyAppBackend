@@ -3,18 +3,14 @@ package com.example.bowlyApp.support
 import com.example.bowlyApp.dto.AuthResponse
 import com.example.bowlyApp.dto.LoginRequest
 import com.example.bowlyApp.dto.RegisterRequest
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestTemplate
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -27,17 +23,11 @@ abstract class IntegrationTestBase {
     @LocalServerPort
     protected var port: Int = 0
 
-    @Autowired
-    protected lateinit var objectMapper: ObjectMapper
-
     protected lateinit var rest: RestClient
 
     @BeforeEach
     fun setUpRestClient() {
-        val restTemplate = RestTemplate().apply {
-            messageConverters = listOf(MappingJackson2HttpMessageConverter(objectMapper))
-        }
-        rest = RestClient.builder(restTemplate)
+        rest = RestClient.builder()
             .baseUrl("http://127.0.0.1:$port")
             .build()
     }
