@@ -28,9 +28,11 @@ jobs:
           echo "::group::Failed test cases"
           find build/test-results/test -name 'TEST-*.xml' -print0 2>/dev/null | while IFS= read -r -d '' f; do
             if grep -qE '<failure|<error' "$f" 2>/dev/null; then
-              echo "=== $f ==="
-              grep -oP 'testsuite name="\K[^"]+' "$f" | head -1
-              grep -oP '(failure|error) message="\K[^"]+' "$f" | head -3
+              suite=$(grep -oP 'testsuite name="\K[^"]+' "$f" | head -1)
+              msg=$(grep -oP '(failure|error) message="\K[^"]+' "$f" | head -1 | cut -c1-500)
+              echo "=== $suite ==="
+              echo "$msg"
+              echo "::error title=${suite}::${msg}"
             fi
           done
           echo "::endgroup::"
