@@ -2,19 +2,14 @@ package com.example.bowlyApp.support
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@Testcontainers
 @ActiveProfiles("test")
 abstract class IntegrationTestBase {
 
@@ -22,21 +17,16 @@ abstract class IntegrationTestBase {
     protected lateinit var mockMvc: MockMvc
 
     companion object {
-        @Container
-        @ServiceConnection
-        @JvmStatic
-        val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15-alpine")
-            .withDatabaseName("bowly_test")
-            .withUsername("test")
-            .withPassword("test")
-            .apply { start() }
-
         @DynamicPropertySource
         @JvmStatic
         fun configureProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", postgres::getJdbcUrl)
-            registry.add("spring.datasource.username", postgres::getUsername)
-            registry.add("spring.datasource.password", postgres::getPassword)
+            if (System.getenv("SPRING_DATASOURCE_URL") != null) {
+                return
+            }
+            val postgres = PostgresTestSupport.container
+            registry.add("spring.datasource.url") { postgres.jdbcUrl }
+            registry.add("spring.datasource.username") { postgres.username }
+            registry.add("spring.datasource.password") { postgres.password }
         }
     }
 }
