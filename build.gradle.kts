@@ -43,7 +43,7 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
 	// Testy
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
 	testImplementation("org.springframework.security:spring-security-test")

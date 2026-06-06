@@ -4,7 +4,6 @@ import com.example.bowlyApp.dto.AuthResponse
 import com.example.bowlyApp.dto.LoginRequest
 import com.example.bowlyApp.dto.RegisterRequest
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.http.HttpStatusCode
@@ -18,13 +17,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 object RestTestHelper {
 
-    private var objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper = jacksonObjectMapper()
         .findAndRegisterModules()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-    fun bind(objectMapper: ObjectMapper) {
-        this.objectMapper = objectMapper
-    }
 
     fun registerAndGetToken(
         mockMvc: MockMvc,
