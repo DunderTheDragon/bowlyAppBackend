@@ -77,12 +77,13 @@ class BatchMealService(
 
         var savedBatchMeal = batchMealRepository.save(batchMeal)
 
-        if (request.saveAsRecipe == true && request.recipeSections.isNotEmpty()) {
+        if (request.saveAsRecipe == true && !request.recipeSections.isNullOrEmpty()) {
+            val recipeSections = request.recipeSections!!
             val created = mealRecipeService.createLocalRecipe(
                 username,
                 CreateMealRecipeRequest(
                     name = request.name,
-                    sections = request.recipeSections
+                    sections = recipeSections
                 )
             )
             logger.info("Utworzono przepis '${created.name}' (ID=${created.id}) wraz z patelnią")

@@ -29,7 +29,7 @@ data class CreateBatchMealRequest(
     val name: String,
     val recipeId: Long? = null,
     val saveAsRecipe: Boolean? = false,
-    val recipeSections: List<CreateRecipeSectionRequest> = emptyList(),
+    val recipeSections: List<CreateRecipeSectionRequest>? = null,
     val segments: List<CreateBatchMealSegmentRequest>
 )
 
