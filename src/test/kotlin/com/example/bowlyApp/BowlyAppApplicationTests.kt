@@ -1,13 +1,11 @@
 package com.example.bowlyApp
 
+import com.example.bowlyApp.support.IntegrationTestBase
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest
-class BowlyAppApplicationTests {
+class BowlyAppApplicationTests : IntegrationTestBase() {
 
-	@Test
-	fun contextLoads() {
-	}
-
+    @Test
+    fun contextLoads() {
+    }
 }

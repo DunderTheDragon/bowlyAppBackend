@@ -112,7 +112,17 @@ Recipes support **sections** (e.g. pasta + sauce). Scope: `MINE` or `ALL`.
 | GET | `/api/batch-meals/active` | Active (non-depleted) batch meals |
 | POST | `/api/batch-meals` | Create batch meal (+ optional `saveAsRecipe`) |
 | POST | `/api/batch-meals/consume` | Take portion → diary |
+| PUT | `/api/batch-meals/{batchMealId}/segments/{segmentId}` | Update cooked weight of segment |
 | DELETE | `/api/batch-meals/{id}` | Delete batch meal |
+
+### Update segment cooked weight
+
+```json
+PUT /api/batch-meals/1/segments/5
+{ "cookedWeightG": 800 }
+```
+
+Scales `initialWeightG` and proportionally `currentWeightG` after cooking.
 
 ### Consume portion
 
@@ -124,6 +134,31 @@ Recipes support **sections** (e.g. pasta + sauce). Scope: `MINE` or `ALL`.
   "mealType": "DINNER"
 }
 ```
+
+---
+
+## Weighing containers (`/api/containers`)
+
+Instance-wide tare containers (plate, pan, pot).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/containers` | List all containers |
+| POST | `/api/containers` | Create container |
+| PUT | `/api/containers/{id}` | Update container |
+| DELETE | `/api/containers/{id}` | Delete container |
+
+```json
+POST /api/containers
+{
+  "name": "Talerz",
+  "type": "PLATE",
+  "weightG": 250,
+  "imageBase64": null
+}
+```
+
+Types: `PAN`, `PLATE`, `POT`, `OTHER`. Weight must be > 0.
 
 ---
 

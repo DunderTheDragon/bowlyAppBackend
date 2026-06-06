@@ -212,6 +212,47 @@ Only on databases that ran older migration files. On a dev instance: `docker com
 
 ---
 
+## Documentation
+
+Full project documentation (Polish, for academic submission) is in **[docs/](docs/README.md)**:
+
+- Architecture, features, database schema (ER diagram)
+- Backend and frontend code overview
+- Test strategy and CI
+
+API reference: [ENDPOINTS.md](ENDPOINTS.md)
+
+---
+
+## Running tests
+
+**Requirements:** JDK 17+, **Docker** (for integration tests with Testcontainers).
+
+```bash
+./gradlew test                  # unit + integration tests
+./gradlew test jacocoTestReport # + coverage report in build/reports/jacoco/
+```
+
+External Open Food Facts test (network):
+```bash
+./gradlew test -DincludeTags=external
+```
+
+Manual smoke test against running Docker stack:
+```bash
+chmod +x scripts/smoke-test.sh
+REGISTRATION_SECRET=your-secret ./scripts/smoke-test.sh http://localhost:8742
+```
+
+Frontend unit tests (in local `bowly/` clone):
+```bash
+cd bowly && ./gradlew :composeApp:testDebugUnitTest
+```
+
+CI runs tests on every push via `.github/workflows/test.yml`.
+
+---
+
 ## License
 
 [MIT](LICENSE)
