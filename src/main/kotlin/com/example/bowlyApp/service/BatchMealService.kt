@@ -31,7 +31,7 @@ class BatchMealService(
 
         logger.info(
             "Rozpoczynanie tworzenia nowej patelni: '${request.name}' z ${request.segments.size} sekcjami " +
-                "(saveAsRecipe=${request.saveAsRecipe})."
+                "(saveAsRecipe=${request.saveAsRecipe == true})."
         )
 
         request.segments.forEach { cacheSegmentProducts(it) }
@@ -77,7 +77,7 @@ class BatchMealService(
 
         var savedBatchMeal = batchMealRepository.save(batchMeal)
 
-        if (request.saveAsRecipe && request.recipeSections.isNotEmpty()) {
+        if (request.saveAsRecipe == true && request.recipeSections.isNotEmpty()) {
             val created = mealRecipeService.createLocalRecipe(
                 username,
                 CreateMealRecipeRequest(

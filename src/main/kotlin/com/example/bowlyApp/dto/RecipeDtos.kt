@@ -34,7 +34,7 @@ data class CreateMealRecipeRequest(
     val name: String,
     val description: String? = null,
     val tags: String? = null,
-    val isSingleMeal: Boolean = false,
+    val isSingleMeal: Boolean? = false,
     val sections: List<CreateRecipeSectionRequest>
 )
 

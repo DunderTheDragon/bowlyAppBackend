@@ -30,7 +30,7 @@ class MealRecipeService(
             tags = request.tags,
             source = "LOCAL",
             user = user,
-            isSingleMeal = request.isSingleMeal
+            isSingleMeal = request.isSingleMeal == true
         )
 
         addSectionsToRecipe(recipe, request.sections)
@@ -49,7 +49,7 @@ class MealRecipeService(
         recipe.name = request.name
         recipe.description = request.description
         recipe.tags = request.tags
-        recipe.isSingleMeal = request.isSingleMeal
+        recipe.isSingleMeal = request.isSingleMeal == true
         recipe.ingredients.clear()
         addSectionsToRecipe(recipe, request.sections)
 
