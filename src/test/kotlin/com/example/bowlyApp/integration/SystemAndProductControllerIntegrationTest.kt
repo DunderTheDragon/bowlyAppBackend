@@ -52,6 +52,7 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
 
         assertEquals("Ryż", created?.name)
 
+        val createdId = requireNotNull(created?.id)
         val search = rest.get()
             .uri { builder ->
                 builder.path("/api/products/search/local")
@@ -62,6 +63,6 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<List<ProductSearchResult>>() {})
 
-        assertTrue(search?.any { it.name == "Ryż" } == true)
+        assertTrue(search?.any { it.id == createdId } == true)
     }
 }

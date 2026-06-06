@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -27,10 +28,28 @@ abstract class IntegrationTestBase {
     @Autowired
     protected lateinit var restClientBuilder: RestClient.Builder
 
+    @Autowired
+    protected lateinit var jdbcTemplate: JdbcTemplate
+
     protected lateinit var rest: RestClient
 
     @BeforeEach
-    fun setUpRestClient() {
+    fun setUpIntegrationTest() {
+        jdbcTemplate.execute(
+            """
+            TRUNCATE TABLE
+                consumed_portions,
+                batch_meal_segments,
+                batch_meals,
+                recipe_ingredients,
+                meal_recipes,
+                workout_activities,
+                weighing_containers,
+                products,
+                users
+            RESTART IDENTITY CASCADE
+            """.trimIndent()
+        )
         rest = restClientBuilder.baseUrl("http://localhost:$port").build()
     }
 
