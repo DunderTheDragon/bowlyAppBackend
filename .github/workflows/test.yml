@@ -22,6 +22,19 @@ jobs:
       - name: Run tests with coverage
         run: ./gradlew test jacocoTestReport --no-daemon
 
+      - name: Print failed tests
+        if: failure()
+        run: |
+          echo "::group::Failed test cases"
+          find build/test-results/test -name 'TEST-*.xml' -print0 2>/dev/null | while IFS= read -r -d '' f; do
+            if grep -qE '<failure|<error' "$f" 2>/dev/null; then
+              echo "=== $f ==="
+              grep -oP 'testsuite name="\K[^"]+' "$f" | head -1
+              grep -oP '(failure|error) message="\K[^"]+' "$f" | head -3
+            fi
+          done
+          echo "::endgroup::"
+
       - name: Upload test report
         if: failure()
         uses: actions/upload-artifact@v4
