@@ -2,6 +2,7 @@ package com.example.bowlyApp.support
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -22,11 +23,13 @@ abstract class IntegrationTestBase {
 
     companion object {
         @Container
+        @ServiceConnection
         @JvmStatic
         val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15-alpine")
             .withDatabaseName("bowly_test")
             .withUsername("test")
             .withPassword("test")
+            .apply { start() }
 
         @DynamicPropertySource
         @JvmStatic
