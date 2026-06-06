@@ -3,15 +3,23 @@ package com.example.bowlyApp.support
 import com.example.bowlyApp.dto.AuthResponse
 import com.example.bowlyApp.dto.LoginRequest
 import com.example.bowlyApp.dto.RegisterRequest
-import org.springframework.core.ParameterizedTypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 object RestTestHelper {
 
+    private val objectMapper = jacksonObjectMapper()
+
     fun registerAndGetToken(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         username: String = "testuser",
         password: String = TestFixtures.DEFAULT_PASSWORD
     ): String {
@@ -20,149 +28,145 @@ object RestTestHelper {
             password = password,
             registrationSecret = TestFixtures.REGISTRATION_SECRET
         )
-        val registerResult = rest.post()
-            .uri("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(register)
-            .exchange()
-            .returnResult(AuthResponse::class.java)
+        val registerResult = mockMvc.perform(
+            post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(register))
+        ).andReturn()
 
-        registerResult.responseBody?.token?.takeIf { it.isNotBlank() }?.let { return it }
+        if (registerResult.response.status in 200..299) {
+            val token = objectMapper.readValue<AuthResponse>(registerResult.response.contentAsString).token
+            if (!token.isNullOrBlank()) return token
+        }
 
         val login = LoginRequest(username = username, password = password)
-        val loginResult = rest.post()
-            .uri("/api/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(login)
-            .exchange()
-            .expectStatus().is2xxSuccessful()
-            .returnResult(AuthResponse::class.java)
+        val loginResult = mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(login))
+        ).andExpect(status().isOk).andReturn()
 
-        return requireNotNull(loginResult.responseBody?.token) { "Brak tokena po logowaniu" }
+        return requireNotNull(
+            objectMapper.readValue<AuthResponse>(loginResult.response.contentAsString).token
+        ) { "Brak tokena po logowaniu" }
     }
 
     fun <T : Any> get(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String,
         responseType: Class<T>
-    ): T? = rest.get()
-        .uri(path)
-        .headers { it.setBearerAuth(token) }
-        .exchange()
-        .expectStatus().is2xxSuccessful()
-        .returnResult(responseType)
-        .responseBody
+    ): T? {
+        val result = mockMvc.perform(
+            get(path).header("Authorization", "Bearer $token")
+        ).andExpect(status().isOk).andReturn()
+        return objectMapper.readValue(result.response.contentAsString, responseType)
+    }
 
     fun <T : Any> getList(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String,
-        responseType: ParameterizedTypeReference<List<T>>
-    ): List<T>? = rest.get()
-        .uri(path)
-        .headers { it.setBearerAuth(token) }
-        .exchange()
-        .expectStatus().is2xxSuccessful()
-        .returnResult(responseType)
-        .responseBody
+        elementClass: Class<T>
+    ): List<T>? {
+        val result = mockMvc.perform(
+            get(path).header("Authorization", "Bearer $token")
+        ).andExpect(status().isOk).andReturn()
+        val type = objectMapper.typeFactory.constructCollectionType(List::class.java, elementClass)
+        return objectMapper.readValue(result.response.contentAsString, type)
+    }
 
-    @Suppress("UNCHECKED_CAST")
     fun getMap(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String? = null
     ): Map<String, Any>? {
-        val request = rest.get().uri(path)
+        var request = get(path)
         if (token != null) {
-            request.headers { it.setBearerAuth(token) }
+            request = request.header("Authorization", "Bearer $token")
         }
-        return request.exchange()
-            .expectStatus().is2xxSuccessful()
-            .returnResult(Map::class.java)
-            .responseBody as Map<String, Any>?
+        val result = mockMvc.perform(request).andExpect(status().isOk).andReturn()
+        @Suppress("UNCHECKED_CAST")
+        return objectMapper.readValue(result.response.contentAsString, Map::class.java) as Map<String, Any>?
     }
 
-    fun getPublicMap(rest: RestTestClient, path: String): Map<String, Any>? =
-        getMap(rest, path)
+    fun getPublicMap(mockMvc: MockMvc, path: String): Map<String, Any>? =
+        getMap(mockMvc, path)
 
     fun <T : Any> post(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String,
         body: Any,
         responseType: Class<T>
-    ): T? = rest.post()
-        .uri(path)
-        .headers { it.setBearerAuth(token) }
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(body)
-        .exchange()
-        .expectStatus().is2xxSuccessful()
-        .returnResult(responseType)
-        .responseBody
+    ): T? {
+        val result = mockMvc.perform(
+            post(path)
+                .header("Authorization", "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body))
+        ).andExpect(status().isOk).andReturn()
+        return objectMapper.readValue(result.response.contentAsString, responseType)
+    }
 
     fun postEmpty(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String,
         body: Any
     ) {
-        rest.post()
-            .uri(path)
-            .headers { it.setBearerAuth(token) }
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body)
-            .exchange()
-            .expectStatus().is2xxSuccessful()
+        mockMvc.perform(
+            post(path)
+                .header("Authorization", "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body))
+        ).andExpect(status().isOk)
     }
 
     fun <T : Any> put(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String,
         body: Any,
         responseType: Class<T>
-    ): T? = rest.put()
-        .uri(path)
-        .headers { it.setBearerAuth(token) }
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(body)
-        .exchange()
-        .expectStatus().is2xxSuccessful()
-        .returnResult(responseType)
-        .responseBody
+    ): T? {
+        val result = mockMvc.perform(
+            put(path)
+                .header("Authorization", "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body))
+        ).andExpect(status().isOk).andReturn()
+        return objectMapper.readValue(result.response.contentAsString, responseType)
+    }
 
     fun delete(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         token: String
     ) {
-        rest.delete()
-            .uri(path)
-            .headers { it.setBearerAuth(token) }
-            .exchange()
-            .expectStatus().is2xxSuccessful()
+        mockMvc.perform(
+            delete(path).header("Authorization", "Bearer $token")
+        ).andExpect(status().isOk)
     }
 
     fun postExpectError(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String,
         body: Any
-    ): HttpStatusCode = rest.post()
-        .uri(path)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(body)
-        .exchange()
-        .returnResult(String::class.java)
-        .status
+    ): HttpStatusCode {
+        val result = mockMvc.perform(
+            post(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body))
+        ).andReturn()
+        return HttpStatusCode.valueOf(result.response.status)
+    }
 
     fun getExpectError(
-        rest: RestTestClient,
+        mockMvc: MockMvc,
         path: String
-    ): HttpStatusCode = rest.get()
-        .uri(path)
-        .exchange()
-        .returnResult(String::class.java)
-        .status
+    ): HttpStatusCode {
+        val result = mockMvc.perform(get(path)).andReturn()
+        return HttpStatusCode.valueOf(result.response.status)
+    }
 }

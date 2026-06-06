@@ -1,26 +1,24 @@
 package com.example.bowlyApp.support
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.springframework.test.web.servlet.client.RestTestClient
+import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@AutoConfigureRestTestClient
 @Testcontainers
 @ActiveProfiles("test")
 abstract class IntegrationTestBase {
 
     @Autowired
-    protected lateinit var rest: RestTestClient
+    protected lateinit var mockMvc: MockMvc
 
     companion object {
         @Container

@@ -7,7 +7,6 @@ import com.example.bowlyApp.support.TestFixtures
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.core.ParameterizedTypeReference
 
 class BatchMealControllerIntegrationTest : IntegrationTestBase() {
 
@@ -16,7 +15,7 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "batch_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "batch_user")
         productId = createProduct()
     }
 
@@ -30,7 +29,7 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
             carbohydrates = 0.0
         )
         val response = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/products/local",
             token,
             product,
@@ -42,7 +41,7 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
     @Test
     fun `tworzenie patelni konsumpcja i edycja segmentu`() {
         val batchMeal = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/batch-meals",
             token,
             TestFixtures.createBatchMealRequest(productId = productId, weightG = 1000.0),
@@ -52,7 +51,7 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
         val segmentId = requireNotNull(batchMeal?.segments?.first()?.id)
 
         val updated = RestTestHelper.put(
-            rest,
+            mockMvc,
             "/api/batch-meals/${batchMeal!!.id}/segments/$segmentId",
             token,
             UpdateSegmentCookedWeightRequest(cookedWeightG = 800.0),
@@ -62,17 +61,17 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
         assertEquals(800.0, updated?.segments?.first()?.initialWeightG)
 
         RestTestHelper.postEmpty(
-            rest,
+            mockMvc,
             "/api/batch-meals/consume",
             token,
             TestFixtures.consumePortionRequest(segmentId = segmentId, weightG = 200.0)
         )
 
         val active = RestTestHelper.getList(
-            rest,
+            mockMvc,
             "/api/batch-meals/active",
             token,
-            object : ParameterizedTypeReference<List<BatchMealDto>>() {}
+            BatchMealDto::class.java
         )
 
         val batchId = requireNotNull(batchMeal.id)
@@ -87,20 +86,20 @@ class DiaryControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun auth() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "diary_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "diary_user")
     }
 
     @Test
     fun `consume produktu i daily summary`() {
         RestTestHelper.postEmpty(
-            rest,
+            mockMvc,
             "/api/diary/consume",
             token,
             TestFixtures.consumeProductRequest()
         )
 
         val summary = RestTestHelper.get(
-            rest,
+            mockMvc,
             "/api/diary/daily?date=2026-06-06",
             token,
             DailySummaryDto::class.java
@@ -117,7 +116,7 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "recipe_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "recipe_user")
         val product = ProductSearchResult(
             name = "Tofu",
             source = "LOCAL",
@@ -127,7 +126,7 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
             carbohydrates = 3.0
         )
         val response = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/products/local",
             token,
             product,
@@ -148,7 +147,7 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
             )
         )
         val created = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/recipes",
             token,
             request,
@@ -158,15 +157,15 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
         val recipeId = requireNotNull(created?.id)
 
         val list = RestTestHelper.getList(
-            rest,
+            mockMvc,
             "/api/recipes",
             token,
-            object : ParameterizedTypeReference<List<MealRecipeDto>>() {}
+            MealRecipeDto::class.java
         )
 
         assertTrue(list?.any { it.name == "Tofu stir fry" } == true)
 
-        RestTestHelper.delete(rest, "/api/recipes/$recipeId", token)
+        RestTestHelper.delete(mockMvc, "/api/recipes/$recipeId", token)
     }
 }
 
@@ -176,13 +175,13 @@ class WorkoutControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun auth() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "workout_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "workout_user")
     }
 
     @Test
     fun `dodanie i usunięcie treningu`() {
         val created = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/workouts",
             token,
             TestFixtures.createWorkoutRequest(),
@@ -192,15 +191,15 @@ class WorkoutControllerIntegrationTest : IntegrationTestBase() {
         val id = requireNotNull(created?.id)
 
         val list = RestTestHelper.getList(
-            rest,
+            mockMvc,
             "/api/workouts?date=2026-06-06",
             token,
-            object : ParameterizedTypeReference<List<WorkoutActivityDto>>() {}
+            WorkoutActivityDto::class.java
         )
 
         assertEquals("Bieganie", list?.first { it.id == id }?.name)
 
-        RestTestHelper.delete(rest, "/api/workouts/$id", token)
+        RestTestHelper.delete(mockMvc, "/api/workouts/$id", token)
     }
 }
 
@@ -210,13 +209,13 @@ class WeighingContainerControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun auth() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "container_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "container_user")
     }
 
     @Test
     fun `CRUD naczynia`() {
         val created = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/containers",
             token,
             TestFixtures.createContainerRequest(),
@@ -226,14 +225,14 @@ class WeighingContainerControllerIntegrationTest : IntegrationTestBase() {
         val id = requireNotNull(created?.id)
 
         val list = RestTestHelper.getList(
-            rest,
+            mockMvc,
             "/api/containers",
             token,
-            object : ParameterizedTypeReference<List<WeighingContainerDto>>() {}
+            WeighingContainerDto::class.java
         )
 
         assertEquals("Talerz", list?.first { it.id == id }?.name)
 
-        RestTestHelper.delete(rest, "/api/containers/$id", token)
+        RestTestHelper.delete(mockMvc, "/api/containers/$id", token)
     }
 }

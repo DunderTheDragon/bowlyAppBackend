@@ -7,14 +7,13 @@ import com.example.bowlyApp.support.TestFixtures
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.web.util.UriComponentsBuilder
 
 class SystemControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `status jest publiczny bez autoryzacji`() {
-        val response = RestTestHelper.getPublicMap(rest, "/api/system/status")
+        val response = RestTestHelper.getPublicMap(mockMvc, "/api/system/status")
         assertNotNull(response?.get("isSetup"))
     }
 }
@@ -25,7 +24,7 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun auth() {
-        token = RestTestHelper.registerAndGetToken(rest, username = "product_user")
+        token = RestTestHelper.registerAndGetToken(mockMvc, username = "product_user")
     }
 
     @Test
@@ -39,7 +38,7 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
             carbohydrates = 28.0
         )
         val created = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/products/local",
             token,
             product,
@@ -55,10 +54,10 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
             .toUriString()
 
         val search = RestTestHelper.getList(
-            rest,
+            mockMvc,
             searchPath,
             token,
-            object : ParameterizedTypeReference<List<ProductSearchResult>>() {}
+            ProductSearchResult::class.java
         )
 
         assertTrue(search?.any { it.id == createdId } == true)

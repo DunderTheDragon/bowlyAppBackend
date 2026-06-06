@@ -8,7 +8,6 @@ import com.example.bowlyApp.support.RestTestHelper
 import com.example.bowlyApp.support.TestFixtures
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.springframework.core.ParameterizedTypeReference
 
 /**
  * Test wdrożeniowy — pełny scenariusz użytkownika od rejestracji do dziennika.
@@ -17,7 +16,7 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `happy path rejestracja produkt patelnia porcja dziennik`() {
-        val token = RestTestHelper.registerAndGetToken(rest, username = "deploy_user")
+        val token = RestTestHelper.registerAndGetToken(mockMvc, username = "deploy_user")
 
         val product = ProductSearchResult(
             name = "Indyk",
@@ -29,7 +28,7 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
         )
         val productId = requireNotNull(
             RestTestHelper.post(
-                rest,
+                mockMvc,
                 "/api/products/local",
                 token,
                 product,
@@ -38,7 +37,7 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
         )
 
         val batch = RestTestHelper.post(
-            rest,
+            mockMvc,
             "/api/batch-meals",
             token,
             TestFixtures.createBatchMealRequest(
@@ -52,14 +51,14 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
         val segmentId = requireNotNull(batch?.segments?.first()?.id)
 
         RestTestHelper.postEmpty(
-            rest,
+            mockMvc,
             "/api/batch-meals/consume",
             token,
             TestFixtures.consumePortionRequest(segmentId = segmentId, weightG = 300.0, mealType = "DINNER")
         )
 
         val diary = RestTestHelper.get(
-            rest,
+            mockMvc,
             "/api/diary/daily?date=2026-06-06",
             token,
             DailySummaryDto::class.java
@@ -68,10 +67,10 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
         assertNotNull(diary?.meals?.get("DINNER"))
 
         val active = RestTestHelper.getList(
-            rest,
+            mockMvc,
             "/api/batch-meals/active",
             token,
-            object : ParameterizedTypeReference<List<BatchMealDto>>() {}
+            BatchMealDto::class.java
         )
 
         val batchId = requireNotNull(batch?.id)
@@ -79,14 +78,14 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
         assertEquals(900.0, activeBatch?.segments?.first()?.currentWeightG)
 
         RestTestHelper.postEmpty(
-            rest,
+            mockMvc,
             "/api/workouts",
             token,
             TestFixtures.createWorkoutRequest()
         )
 
         val diaryWithWorkout = RestTestHelper.get(
-            rest,
+            mockMvc,
             "/api/diary/daily?date=2026-06-06",
             token,
             DailySummaryDto::class.java

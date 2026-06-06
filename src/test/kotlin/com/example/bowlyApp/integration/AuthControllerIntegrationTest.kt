@@ -12,9 +12,9 @@ class AuthControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `register i login zwracają token JWT`() {
-        val token = RestTestHelper.registerAndGetToken(rest, username = "auth_user")
+        val token = RestTestHelper.registerAndGetToken(mockMvc, username = "auth_user")
 
-        val profile = RestTestHelper.get(rest, "/api/users/profile", token, UserDto::class.java)
+        val profile = RestTestHelper.get(mockMvc, "/api/users/profile", token, UserDto::class.java)
 
         assertEquals("auth_user", profile?.username)
     }
@@ -24,13 +24,13 @@ class AuthControllerIntegrationTest : IntegrationTestBase() {
         val request = TestFixtures.registerRequest(username = "bad_secret_user")
             .copy(registrationSecret = "wrong")
 
-        val status = RestTestHelper.postExpectError(rest, "/api/auth/register", request)
+        val status = RestTestHelper.postExpectError(mockMvc, "/api/auth/register", request)
         assertEquals(HttpStatus.BAD_REQUEST, status)
     }
 
     @Test
     fun `chroniony endpoint zwraca 401 bez tokena`() {
-        val status = RestTestHelper.getExpectError(rest, "/api/users/profile")
+        val status = RestTestHelper.getExpectError(mockMvc, "/api/users/profile")
         assertTrue(
             status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN,
             "Oczekiwano 401 lub 403, otrzymano $status"
