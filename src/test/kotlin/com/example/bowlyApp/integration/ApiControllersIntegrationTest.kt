@@ -3,13 +3,11 @@ package com.example.bowlyApp.integration
 import com.example.bowlyApp.dto.*
 import com.example.bowlyApp.support.IntegrationTestBase
 import com.example.bowlyApp.support.RestTestHelper
-import com.example.bowlyApp.support.RestTestHelper.bearer
 import com.example.bowlyApp.support.TestFixtures
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.MediaType
 
 class BatchMealControllerIntegrationTest : IntegrationTestBase() {
 
@@ -31,53 +29,53 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
             fat = 3.6,
             carbohydrates = 0.0
         )
-        val response = rest.post()
-            .uri("/api/products/local")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(product)
-            .retrieve()
-            .body(ProductSearchResult::class.java)
+        val response = RestTestHelper.post(
+            rest,
+            "/api/products/local",
+            token,
+            product,
+            ProductSearchResult::class.java
+        )
         return requireNotNull(response?.id)
     }
 
     @Test
     fun `tworzenie patelni konsumpcja i edycja segmentu`() {
-        val batchMeal = rest.post()
-            .uri("/api/batch-meals")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(TestFixtures.createBatchMealRequest(productId = productId, weightG = 1000.0))
-            .retrieve()
-            .body(BatchMealDto::class.java)
+        val batchMeal = RestTestHelper.post(
+            rest,
+            "/api/batch-meals",
+            token,
+            TestFixtures.createBatchMealRequest(productId = productId, weightG = 1000.0),
+            BatchMealDto::class.java
+        )
 
         val segmentId = requireNotNull(batchMeal?.segments?.first()?.id)
 
-        val updated = rest.put()
-            .uri("/api/batch-meals/${batchMeal!!.id}/segments/$segmentId")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(UpdateSegmentCookedWeightRequest(cookedWeightG = 800.0))
-            .retrieve()
-            .body(BatchMealDto::class.java)
+        val updated = RestTestHelper.put(
+            rest,
+            "/api/batch-meals/${batchMeal!!.id}/segments/$segmentId",
+            token,
+            UpdateSegmentCookedWeightRequest(cookedWeightG = 800.0),
+            BatchMealDto::class.java
+        )
 
         assertEquals(800.0, updated?.segments?.first()?.initialWeightG)
 
-        rest.post()
-            .uri("/api/batch-meals/consume")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(TestFixtures.consumePortionRequest(segmentId = segmentId, weightG = 200.0))
-            .retrieve()
-            .toBodilessEntity()
+        RestTestHelper.postEmpty(
+            rest,
+            "/api/batch-meals/consume",
+            token,
+            TestFixtures.consumePortionRequest(segmentId = segmentId, weightG = 200.0)
+        )
 
-        val active = rest.get()
-            .uri("/api/batch-meals/active")
-            .bearer(token)
-            .retrieve()
-            .body(object : ParameterizedTypeReference<List<BatchMealDto>>() {})
+        val active = RestTestHelper.getList(
+            rest,
+            "/api/batch-meals/active",
+            token,
+            object : ParameterizedTypeReference<List<BatchMealDto>>() {}
+        )
 
-        val batchId = requireNotNull(batchMeal?.id)
+        val batchId = requireNotNull(batchMeal.id)
         val activeBatch = active?.first { it.id == batchId }
         assertEquals(600.0, activeBatch?.segments?.first()?.currentWeightG)
     }
@@ -94,19 +92,19 @@ class DiaryControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `consume produktu i daily summary`() {
-        rest.post()
-            .uri("/api/diary/consume")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(TestFixtures.consumeProductRequest())
-            .retrieve()
-            .toBodilessEntity()
+        RestTestHelper.postEmpty(
+            rest,
+            "/api/diary/consume",
+            token,
+            TestFixtures.consumeProductRequest()
+        )
 
-        val summary = rest.get()
-            .uri("/api/diary/daily?date=2026-06-06")
-            .bearer(token)
-            .retrieve()
-            .body(DailySummaryDto::class.java)
+        val summary = RestTestHelper.get(
+            rest,
+            "/api/diary/daily?date=2026-06-06",
+            token,
+            DailySummaryDto::class.java
+        )
 
         assertEquals(78.0, summary?.totalKcal)
     }
@@ -128,13 +126,13 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
             fat = 8.0,
             carbohydrates = 3.0
         )
-        val response = rest.post()
-            .uri("/api/products/local")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(product)
-            .retrieve()
-            .body(ProductSearchResult::class.java)
+        val response = RestTestHelper.post(
+            rest,
+            "/api/products/local",
+            token,
+            product,
+            ProductSearchResult::class.java
+        )
         productId = response?.id?.toLong() ?: error("Brak productId")
     }
 
@@ -149,29 +147,26 @@ class MealRecipeControllerIntegrationTest : IntegrationTestBase() {
                 )
             )
         )
-        val created = rest.post()
-            .uri("/api/recipes")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(request)
-            .retrieve()
-            .body(MealRecipeDto::class.java)
+        val created = RestTestHelper.post(
+            rest,
+            "/api/recipes",
+            token,
+            request,
+            MealRecipeDto::class.java
+        )
 
         val recipeId = requireNotNull(created?.id)
 
-        val list = rest.get()
-            .uri("/api/recipes")
-            .bearer(token)
-            .retrieve()
-            .body(object : ParameterizedTypeReference<List<MealRecipeDto>>() {})
+        val list = RestTestHelper.getList(
+            rest,
+            "/api/recipes",
+            token,
+            object : ParameterizedTypeReference<List<MealRecipeDto>>() {}
+        )
 
         assertTrue(list?.any { it.name == "Tofu stir fry" } == true)
 
-        rest.delete()
-            .uri("/api/recipes/$recipeId")
-            .bearer(token)
-            .retrieve()
-            .toBodilessEntity()
+        RestTestHelper.delete(rest, "/api/recipes/$recipeId", token)
     }
 }
 
@@ -186,29 +181,26 @@ class WorkoutControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `dodanie i usunięcie treningu`() {
-        val created = rest.post()
-            .uri("/api/workouts")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(TestFixtures.createWorkoutRequest())
-            .retrieve()
-            .body(WorkoutActivityDto::class.java)
+        val created = RestTestHelper.post(
+            rest,
+            "/api/workouts",
+            token,
+            TestFixtures.createWorkoutRequest(),
+            WorkoutActivityDto::class.java
+        )
 
         val id = requireNotNull(created?.id)
 
-        val list = rest.get()
-            .uri("/api/workouts?date=2026-06-06")
-            .bearer(token)
-            .retrieve()
-            .body(object : ParameterizedTypeReference<List<WorkoutActivityDto>>() {})
+        val list = RestTestHelper.getList(
+            rest,
+            "/api/workouts?date=2026-06-06",
+            token,
+            object : ParameterizedTypeReference<List<WorkoutActivityDto>>() {}
+        )
 
         assertEquals("Bieganie", list?.first { it.id == id }?.name)
 
-        rest.delete()
-            .uri("/api/workouts/$id")
-            .bearer(token)
-            .retrieve()
-            .toBodilessEntity()
+        RestTestHelper.delete(rest, "/api/workouts/$id", token)
     }
 }
 
@@ -223,28 +215,25 @@ class WeighingContainerControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `CRUD naczynia`() {
-        val created = rest.post()
-            .uri("/api/containers")
-            .bearer(token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(TestFixtures.createContainerRequest())
-            .retrieve()
-            .body(WeighingContainerDto::class.java)
+        val created = RestTestHelper.post(
+            rest,
+            "/api/containers",
+            token,
+            TestFixtures.createContainerRequest(),
+            WeighingContainerDto::class.java
+        )
 
         val id = requireNotNull(created?.id)
 
-        val list = rest.get()
-            .uri("/api/containers")
-            .bearer(token)
-            .retrieve()
-            .body(object : ParameterizedTypeReference<List<WeighingContainerDto>>() {})
+        val list = RestTestHelper.getList(
+            rest,
+            "/api/containers",
+            token,
+            object : ParameterizedTypeReference<List<WeighingContainerDto>>() {}
+        )
 
         assertEquals("Talerz", list?.first { it.id == id }?.name)
 
-        rest.delete()
-            .uri("/api/containers/$id")
-            .bearer(token)
-            .retrieve()
-            .toBodilessEntity()
+        RestTestHelper.delete(rest, "/api/containers/$id", token)
     }
 }
