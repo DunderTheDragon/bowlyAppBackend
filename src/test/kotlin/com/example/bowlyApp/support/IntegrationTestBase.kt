@@ -26,9 +26,6 @@ abstract class IntegrationTestBase {
     protected var port: Int = 0
 
     @Autowired
-    protected lateinit var restClientBuilder: RestClient.Builder
-
-    @Autowired
     protected lateinit var jdbcTemplate: JdbcTemplate
 
     protected lateinit var rest: RestClient
@@ -50,7 +47,9 @@ abstract class IntegrationTestBase {
             RESTART IDENTITY CASCADE
             """.trimIndent()
         )
-        rest = restClientBuilder.baseUrl("http://localhost:$port").build()
+        rest = RestClient.builder()
+            .baseUrl("http://localhost:$port")
+            .build()
     }
 
     companion object {
