@@ -19,7 +19,7 @@ class SystemControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
 
-        assertNotNull(response?.get("status"))
+        assertNotNull(response?.get("isSetup"))
     }
 }
 
