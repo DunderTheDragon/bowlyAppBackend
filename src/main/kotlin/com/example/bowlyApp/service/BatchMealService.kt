@@ -77,7 +77,7 @@ class BatchMealService(
 
         var savedBatchMeal = batchMealRepository.save(batchMeal)
 
-        if (request.saveAsRecipe && !request.recipeSections.isNullOrEmpty()) {
+        if (request.saveAsRecipe && request.recipeSections.isNotEmpty()) {
             val created = mealRecipeService.createLocalRecipe(
                 username,
                 CreateMealRecipeRequest(
@@ -110,7 +110,10 @@ class BatchMealService(
         segmentReq.productId?.toLongOrNull()?.let { id ->
             productRepository.findById(id).orElse(null)?.let { return it }
         }
-        return segmentReq.product?.let { productService.findOrCreateProduct(it) }
+        segmentReq.product?.let { return productService.findOrCreateProduct(it) }
+        return segmentReq.products
+            ?.firstOrNull()
+            ?.let { productService.findOrCreateProduct(it) }
     }
 
     @Transactional(readOnly = true)
