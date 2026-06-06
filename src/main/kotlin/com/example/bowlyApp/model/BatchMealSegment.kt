@@ -21,10 +21,13 @@ data class BatchMealSegment(
     val product: Product? = null,
 
     @Column(name = "initial_weight_g", nullable = false)
-    val initialWeightG: Double,
+    var initialWeightG: Double,
 
     @Column(name = "current_weight_g", nullable = false)
     var currentWeightG: Double,
+
+    @Column(name = "raw_weight_g")
+    val rawWeightG: Double? = null,
 
     @Column(name = "total_kcal", nullable = false)
     val totalKcal: Double,

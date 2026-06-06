@@ -33,6 +33,9 @@ data class ConsumedPortion(
     @Column(name = "meal_type", nullable = false)
     var mealType: String,
 
+    @Column(name = "weight_basis_g")
+    val weightBasisG: Double? = null,
+
     @Column(name = "created_at", insertable = false, updatable = false)
     val createdAt: LocalDateTime? = null
 )

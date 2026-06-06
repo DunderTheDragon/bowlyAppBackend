@@ -15,7 +15,7 @@ data class BatchMeal(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
-    val recipe: MealRecipe? = null,
+    var recipe: MealRecipe? = null,
 
     @Column(name = "is_depleted", nullable = false)
     var isDepleted: Boolean = false,

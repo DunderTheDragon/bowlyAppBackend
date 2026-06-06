@@ -9,6 +9,7 @@ data class BatchMealSegmentDto(
     val product: ProductSearchResult?,
     val initialWeightG: Double,
     val currentWeightG: Double,
+    val rawWeightG: Double? = null,
     val totalKcal: Double,
     val totalProtein: Double,
     val totalFat: Double,
@@ -50,4 +51,8 @@ data class ConsumePortionRequest(
     val weightG: Double,
     val mealDate: String? = null,
     val mealType: String // e.g. "BREAKFAST", "LUNCH", "DINNER", "SNACK"
+)
+
+data class UpdateSegmentCookedWeightRequest(
+    val cookedWeightG: Double
 )

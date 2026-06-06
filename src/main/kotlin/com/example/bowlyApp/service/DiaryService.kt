@@ -111,13 +111,16 @@ class DiaryService(
             var carbs = 0.0
 
             // Przeliczanie dla patelni
-            if (segment != null && segment.initialWeightG > 0) {
-                val ratio = portion.consumedWeightG / segment.initialWeightG
-                kcal = segment.totalKcal * ratio
-                protein = segment.totalProtein * ratio
-                fat = segment.totalFat * ratio
-                carbs = segment.totalCarbs * ratio
-            } 
+            if (segment != null) {
+                val basis = portion.weightBasisG ?: segment.initialWeightG
+                if (basis > 0) {
+                    val ratio = portion.consumedWeightG / basis
+                    kcal = segment.totalKcal * ratio
+                    protein = segment.totalProtein * ratio
+                    fat = segment.totalFat * ratio
+                    carbs = segment.totalCarbs * ratio
+                }
+            }
             // Przeliczanie dla "zwykłego" produktu w 100g
             else if (product != null) {
                 val ratio = portion.consumedWeightG / 100.0

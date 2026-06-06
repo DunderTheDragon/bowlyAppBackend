@@ -3,6 +3,7 @@ package com.example.bowlyApp.controller
 import com.example.bowlyApp.dto.BatchMealDto
 import com.example.bowlyApp.dto.ConsumePortionRequest
 import com.example.bowlyApp.dto.CreateBatchMealRequest
+import com.example.bowlyApp.dto.UpdateSegmentCookedWeightRequest
 import com.example.bowlyApp.service.BatchMealService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -40,5 +41,15 @@ class BatchMealController(
     fun deleteBatchMeal(@PathVariable id: Long): ResponseEntity<Void> {
         batchMealService.deleteBatchMeal(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PutMapping("/{batchMealId}/segments/{segmentId}")
+    fun updateSegmentCookedWeight(
+        @PathVariable batchMealId: Long,
+        @PathVariable segmentId: Long,
+        @RequestBody request: UpdateSegmentCookedWeightRequest
+    ): ResponseEntity<BatchMealDto> {
+        val updated = batchMealService.updateSegmentCookedWeight(batchMealId, segmentId, request)
+        return ResponseEntity.ok(updated)
     }
 }

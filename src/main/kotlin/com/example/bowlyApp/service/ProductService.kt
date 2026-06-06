@@ -111,9 +111,8 @@ class ProductService(
 
     fun findOrCreateProduct(productDto: ProductSearchResult): Product {
         if (productDto.id != null) {
-            return productRepository.findById(productDto.id.toLong()).orElseThrow {
-                IllegalArgumentException("Nie znaleziono produktu o ID: ${productDto.id}")
-            }
+            productRepository.findById(productDto.id.toLong()).orElse(null)?.let { return it }
+            logger.warn("Produkt o ID ${productDto.id} nie istnieje — wyszukiwanie po barcode/externalId lub tworzenie nowego")
         }
 
         if (productDto.source != null && productDto.source !in listOf("LOCAL", "USER") && !productDto.externalId.isNullOrBlank()) {

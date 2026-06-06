@@ -25,6 +25,10 @@ class BatchMealService(
 
     @Transactional
     fun createBatchMeal(username: String, request: CreateBatchMealRequest): BatchMealDto {
+        require(request.segments.isNotEmpty()) {
+            "Patelnia musi mieć co najmniej jedną sekcję ze składnikami"
+        }
+
         logger.info(
             "Rozpoczynanie tworzenia nowej patelni: '${request.name}' z ${request.segments.size} sekcjami " +
                 "(saveAsRecipe=${request.saveAsRecipe})."
@@ -32,28 +36,14 @@ class BatchMealService(
 
         request.segments.forEach { cacheSegmentProducts(it) }
 
-        val linkedRecipe = when {
-            request.saveAsRecipe && !request.recipeSections.isNullOrEmpty() -> {
-                val created = mealRecipeService.createLocalRecipe(
-                    username,
-                    CreateMealRecipeRequest(
-                        name = request.name,
-                        sections = request.recipeSections
-                    )
-                )
-                logger.info("Utworzono przepis '${created.name}' (ID=${created.id}) wraz z patelnią")
-                mealRecipeRepository.findById(created.id).orElse(null)
-            }
-            request.recipeId != null -> {
-                mealRecipeRepository.findById(request.recipeId)
-                    .orElseThrow { IllegalArgumentException("Recipe not found") }
-            }
-            else -> null
+        val linkedRecipeFromId = request.recipeId?.let { recipeId ->
+            mealRecipeRepository.findById(recipeId)
+                .orElseThrow { IllegalArgumentException("Nie znaleziono przepisu o ID $recipeId") }
         }
 
         val batchMeal = BatchMeal(
             name = request.name,
-            recipe = linkedRecipe
+            recipe = linkedRecipeFromId
         )
 
         request.segments.forEach { segmentReq ->
@@ -76,6 +66,7 @@ class BatchMealService(
                 product = product,
                 initialWeightG = segmentReq.initialWeightG,
                 currentWeightG = segmentReq.initialWeightG,
+                rawWeightG = segmentReq.initialWeightG,
                 totalKcal = totalKcal,
                 totalProtein = totalProtein,
                 totalFat = totalFat,
@@ -84,7 +75,21 @@ class BatchMealService(
             batchMeal.segments.add(segment)
         }
 
-        val savedBatchMeal = batchMealRepository.save(batchMeal)
+        var savedBatchMeal = batchMealRepository.save(batchMeal)
+
+        if (request.saveAsRecipe && !request.recipeSections.isNullOrEmpty()) {
+            val created = mealRecipeService.createLocalRecipe(
+                username,
+                CreateMealRecipeRequest(
+                    name = request.name,
+                    sections = request.recipeSections
+                )
+            )
+            logger.info("Utworzono przepis '${created.name}' (ID=${created.id}) wraz z patelnią")
+            savedBatchMeal.recipe = mealRecipeRepository.findById(created.id).orElse(null)
+            savedBatchMeal = batchMealRepository.save(savedBatchMeal)
+        }
+
         logger.info("Pomyślnie utworzono patelnię o ID=${savedBatchMeal.id}")
         return mapToDto(savedBatchMeal)
     }
@@ -146,10 +151,46 @@ class BatchMealService(
             segment = segment,
             consumedWeightG = request.weightG,
             mealDate = mealDate,
-            mealType = request.mealType
+            mealType = request.mealType,
+            weightBasisG = segment.initialWeightG
         )
 
         consumedPortionRepository.save(consumedPortion)
+    }
+
+    @Transactional
+    fun updateSegmentCookedWeight(
+        batchMealId: Long,
+        segmentId: Long,
+        request: UpdateSegmentCookedWeightRequest
+    ): BatchMealDto {
+        require(request.cookedWeightG > 0) {
+            "Waga gotowa sekcji musi być większa od zera"
+        }
+
+        val segment = batchMealSegmentRepository.findById(segmentId)
+            .orElseThrow { IllegalArgumentException("Sekcja o ID $segmentId nie istnieje") }
+
+        if (segment.batchMeal.id != batchMealId) {
+            throw IllegalArgumentException("Sekcja nie należy do podanej patelni")
+        }
+
+        val oldInitial = segment.initialWeightG
+        if (oldInitial <= 0) {
+            throw IllegalArgumentException("Nieprawidłowa aktualna waga sekcji")
+        }
+
+        val scale = request.cookedWeightG / oldInitial
+        segment.initialWeightG = request.cookedWeightG
+        segment.currentWeightG = (segment.currentWeightG * scale).coerceAtLeast(0.0)
+
+        batchMealSegmentRepository.save(segment)
+        logger.info(
+            "Zaktualizowano wagę gotową sekcji '${segment.name}' (ID=$segmentId): " +
+                "${oldInitial}g -> ${request.cookedWeightG}g"
+        )
+
+        return mapToDto(segment.batchMeal)
     }
 
     @Transactional
@@ -174,6 +215,7 @@ class BatchMealService(
                     product = it.product?.let { p -> productService.run { p.toSearchResult() } },
                     initialWeightG = it.initialWeightG,
                     currentWeightG = it.currentWeightG,
+                    rawWeightG = it.rawWeightG,
                     totalKcal = it.totalKcal,
                     totalProtein = it.totalProtein,
                     totalFat = it.totalFat,
