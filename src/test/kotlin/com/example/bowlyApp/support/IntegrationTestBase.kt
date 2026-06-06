@@ -4,7 +4,9 @@ import com.example.bowlyApp.dto.AuthResponse
 import com.example.bowlyApp.dto.LoginRequest
 import com.example.bowlyApp.dto.RegisterRequest
 import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
@@ -18,16 +20,20 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ActiveProfiles("test")
+@Import(IntegrationTestConfig::class)
 abstract class IntegrationTestBase {
 
     @LocalServerPort
     protected var port: Int = 0
 
+    @Autowired
+    protected lateinit var restClientBuilder: RestClient.Builder
+
     protected lateinit var rest: RestClient
 
     @BeforeEach
     fun setUpRestClient() {
-        rest = RestClient.builder()
+        rest = restClientBuilder
             .baseUrl("http://localhost:$port")
             .build()
     }
