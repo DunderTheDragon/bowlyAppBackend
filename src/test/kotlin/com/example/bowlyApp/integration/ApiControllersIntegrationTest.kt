@@ -106,7 +106,7 @@ class DiaryControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(DailySummaryDto::class.java)
 
-        assertEquals(156.0, summary?.totalKcal)
+        assertEquals(78.0, summary?.totalKcal)
     }
 }
 

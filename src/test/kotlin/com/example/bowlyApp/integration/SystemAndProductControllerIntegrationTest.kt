@@ -53,7 +53,11 @@ class ProductControllerIntegrationTest : IntegrationTestBase() {
         assertEquals("Ryż", created?.name)
 
         val search = rest.get()
-            .uri("/api/products/search/local?query=Ryż")
+            .uri { builder ->
+                builder.path("/api/products/search/local")
+                    .queryParam("query", "Ryż")
+                    .build()
+            }
             .bearer(token)
             .retrieve()
             .body(object : ParameterizedTypeReference<List<ProductSearchResult>>() {})
