@@ -4,11 +4,9 @@ import com.example.bowlyApp.dto.AuthResponse
 import com.example.bowlyApp.dto.LoginRequest
 import com.example.bowlyApp.dto.RegisterRequest
 import org.junit.jupiter.api.BeforeEach
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.MediaType
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -25,28 +23,10 @@ abstract class IntegrationTestBase {
     @LocalServerPort
     protected var port: Int = 0
 
-    @Autowired
-    protected lateinit var jdbcTemplate: JdbcTemplate
-
     protected lateinit var rest: RestClient
 
     @BeforeEach
-    fun setUpIntegrationTest() {
-        jdbcTemplate.execute(
-            """
-            TRUNCATE TABLE
-                consumed_portions,
-                batch_meal_segments,
-                batch_meals,
-                recipe_ingredients,
-                meal_recipes,
-                workout_activities,
-                weighing_containers,
-                products,
-                users
-            RESTART IDENTITY CASCADE
-            """.trimIndent()
-        )
+    fun setUpRestClient() {
         rest = RestClient.builder()
             .baseUrl("http://localhost:$port")
             .build()
