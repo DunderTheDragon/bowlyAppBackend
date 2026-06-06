@@ -77,7 +77,9 @@ class BatchMealControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<List<BatchMealDto>>() {})
 
-        assertEquals(600.0, active?.first()?.segments?.first()?.currentWeightG)
+        val batchId = requireNotNull(batchMeal?.id)
+        val activeBatch = active?.first { it.id == batchId }
+        assertEquals(600.0, activeBatch?.segments?.first()?.currentWeightG)
     }
 }
 
@@ -200,7 +202,7 @@ class WorkoutControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<List<WorkoutActivityDto>>() {})
 
-        assertEquals("Bieganie", list?.first()?.name)
+        assertEquals("Bieganie", list?.first { it.id == id }?.name)
 
         rest.delete()
             .uri("/api/workouts/$id")
@@ -237,7 +239,7 @@ class WeighingContainerControllerIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<List<WeighingContainerDto>>() {})
 
-        assertEquals("Talerz", list?.first()?.name)
+        assertEquals("Talerz", list?.first { it.id == id }?.name)
 
         rest.delete()
             .uri("/api/containers/$id")

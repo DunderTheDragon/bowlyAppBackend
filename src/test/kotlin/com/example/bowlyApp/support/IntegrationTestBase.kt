@@ -64,14 +64,18 @@ object RestTestHelper {
             password = password,
             registrationSecret = TestFixtures.REGISTRATION_SECRET
         )
-        val registerBody = rest.post()
-            .uri("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(register)
-            .retrieve()
-            .body(AuthResponse::class.java)
+        try {
+            val registerBody = rest.post()
+                .uri("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(register)
+                .retrieve()
+                .body(AuthResponse::class.java)
 
-        if (registerBody?.token?.isNotBlank() == true) return registerBody.token
+            if (registerBody?.token?.isNotBlank() == true) return registerBody.token
+        } catch (_: org.springframework.web.client.HttpClientErrorException) {
+            // Użytkownik mógł już istnieć z wcześniejszego testu integracyjnego
+        }
 
         val login = LoginRequest(username = username, password = password)
         val loginBody = rest.post()

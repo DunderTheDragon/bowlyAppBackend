@@ -79,7 +79,9 @@ class DeploymentFlowIntegrationTest : IntegrationTestBase() {
             .retrieve()
             .body(object : ParameterizedTypeReference<List<BatchMealDto>>() {})
 
-        assertEquals(900.0, active?.first()?.segments?.first()?.currentWeightG)
+        val batchId = requireNotNull(batch?.id)
+        val activeBatch = active?.first { it.id == batchId }
+        assertEquals(900.0, activeBatch?.segments?.first()?.currentWeightG)
 
         rest.post()
             .uri("/api/workouts")
